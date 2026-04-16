@@ -170,21 +170,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startRecording() {
-        if (!recognition) return;
+        if (!recognition) {
+             statusText.textContent = "音声認識が初期化されていません";
+             return;
+        }
         
-        if (!localStorage.getItem('memo_gemini_api_key')) {
+        const apiKey = localStorage.getItem('memo_gemini_api_key');
+        if (!apiKey || apiKey.trim() === "") {
             statusText.textContent = "APIキーを設定してください";
+            alert("先に右上の設定（歯車アイコン）から Gemini APIキーを入力してください。");
             settingsModal.classList.remove('hidden');
             return;
         }
 
+        // 初期化
         finalTranscript = ''; 
-        transcriptEl.innerHTML = '';
+        transcriptEl.innerHTML = 'お待ちください...';
+        transcriptEl.classList.add('placeholder');
         resultSection.classList.add('hidden');
+        
         try {
             recognition.start();
         } catch (e) {
             console.error("Recognition start error", e);
+            // すでに開始している場合などのエラー回避
+            if (isRecording) {
+                statusText.textContent = "既に録音中です";
+            } else {
+                statusText.textContent = "開始エラー: " + e.message;
+            }
         }
     }
 
